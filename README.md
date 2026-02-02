@@ -41,11 +41,4 @@ This project analyzes and visualizes solar power generation data from a 5-minute
   - `matplotlib`
 - Excel file with a column named `"Power(MW)"`.
 
----
 
-## **How to Run**
-
-1. Clone the repository or download the script.
-2. Make sure your Excel file path is correct in the code:
-   ```python
-   file_path = "/path/to/your/file.xlsx"
