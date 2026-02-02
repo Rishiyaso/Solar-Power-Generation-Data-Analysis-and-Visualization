@@ -1,41 +1,76 @@
-Solar Power Generation Data Analysis and Visualization
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt  # Added for plotting
 
-This project analyzes and visualizes solar power generation data from a 5-minute interval dataset using **Python**. The tool reads an Excel file containing power measurements, performs statistical analysis, visualizes the data, and allows filtering or searching specific power values.
+file_path = "/content/Actual_38.55_-75.15_2006_UPV_49MW_5_Min.xlsx"
 
----
+try:
+    df = pd.read_excel(file_path)
+    print("File Loaded Successfully!")
+    print("Columns:", df.columns.tolist())
+except Exception as e:
+    print(f"Error reading file: {e}")
+    df = None
 
-Project Features
+if df is not None:
+    if "Power(MW)" in df.columns:
+        df = df.dropna(subset=["Power(MW)"])
+    else:
+        raise ValueError("Column 'Power(MW)' not found!")
 
-1. Data Loading
-   - Reads an Excel file containing solar power generation data.
-   - Handles missing values in the "Power(MW)" column.
+    def calculate_statistics(df):
+        power = df["Power(MW)"]
+        if power.empty:
+            return {"mean": None, "median": None, "mode": None, "std_dev": None, "variance": None}
+        mode = power.mode().iloc[0] if not power.mode().empty else None
+        return {
+            "mean": power.mean(),
+            "median": power.median(),
+            "mode": mode,
+            "std_dev": power.std(ddof=0),
+            "variance": power.var(ddof=0)
+        }
 
-2. statistical Analysis
-   - Calculates:
-     - Mean
-     - Median
-     - Mode
-     - Standard Deviation
-     - Variance
-   - Provides a summary of:
-     - Total number of measurements
-     - Minimum power
-     - Maximum power
+    stats = calculate_statistics(df)
+    print("\nStatistics:")
+    for k, v in stats.items():
+        print(f"{k.title()}: {v}")
 
-3. **Data Visualization**
-   - Plots power (MW) over time using `matplotlib`.
-   - Provides a clear line graph for trend analysis.
+    summary = {
+        "count": len(df),
+        "min": df["Power(MW)"].min(),
+        "max": df["Power(MW)"].max()
+    }
+    print("\nSummary:")
+    for k, v in summary.items():
+        print(f"{k.title()}: {v}")
 
-4.Filtering and Searching
-   - Allows users to filter power values above a user-defined threshold.
-   - Allows users to search for a specific power value and returns the row indices if found.
 
----
-Requirements
+    plt.figure(figsize=(10, 4))
+    plt.plot(df["Power(MW)"], label="Power (MW)", color='red')
+    plt.title("Power (MW) Over Time")
+    plt.xlabel("Time (index)")
+    plt.ylabel("Power (MW)")
+    plt.grid(True)
+    plt.legend()
+    plt.tight_layout()
+    plt.show()
 
-- Python 3.x
-- Libraries:
-  - `pandas`
-  - `numpy`
-  - `matplotlib`
-- Excel file with a column named `"Power(MW)"
+
+    try:
+        threshold = float(input("\nEnter power threshold to filter: "))
+        filtered = df[df["Power(MW)"] > threshold]
+        print(f"{len(filtered)} values above {threshold} MW")
+    except ValueError:
+        print("Invalid threshold input.")
+
+    try:
+        search = float(input("Enter a power value to search (or -1 to skip): "))
+        if search != -1:
+            result = df[df["Power(MW)"] == search]
+            if not result.empty:
+                print(f"Found at rows: {result.index.tolist()}")
+            else:
+                print("Value not found.")
+    except ValueError:
+        print("Invalid search input.")
